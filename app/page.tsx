@@ -28,15 +28,34 @@ export default function GSASystem() {
     date: new Date().toISOString().split("T")[0],
   })
 
+  const [activeTab, setActiveTab] = useState<string>("input")
+
   const handleSieveAnalysisComplete = (data: SieveData[], results: AnalysisResults) => {
     setSieveData(data)
     setAnalysisResults(results)
     setCurrentStep("temperature")
+    setActiveTab("temperature")
   }
 
   const handleTemperatureComplete = (data: TemperatureData) => {
     setTemperatureData(data)
     setCurrentStep("results")
+    setActiveTab("results")
+  }
+
+  const handleTabChange = (value: string) => {
+    // 只有在對應步驟完成後才允許切換
+    if (value === "input") {
+      setActiveTab(value)
+    } else if (value === "temperature" && currentStep !== "sieve") {
+      setActiveTab(value)
+    } else if (value === "results" && currentStep === "results") {
+      setActiveTab(value)
+    } else if ((value === "curve" || value === "classification") && analysisResults) {
+      setActiveTab(value)
+    } else if (value === "comparison") {
+      setActiveTab(value)
+    }
   }
 
   const getActiveTab = () => {
@@ -60,12 +79,12 @@ export default function GSASystem() {
           <p className="text-muted-foreground">專業顆粒粒徑分布分析與土壤分類系統</p>
         </div>
 
-        <Tabs value={getActiveTab()} className="w-full">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
           <TabsList className="grid w-full grid-cols-6">
-            <TabsTrigger value="input" disabled={currentStep !== "sieve"}>
+            <TabsTrigger value="input" disabled={currentStep !== "sieve" && activeTab !== "input"}>
               篩分析數據
             </TabsTrigger>
-            <TabsTrigger value="temperature" disabled={currentStep !== "temperature"}>
+            <TabsTrigger value="temperature" disabled={currentStep === "sieve"}>
               溫度輸入
             </TabsTrigger>
             <TabsTrigger value="results" disabled={currentStep !== "results"}>
