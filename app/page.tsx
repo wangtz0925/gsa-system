@@ -8,7 +8,8 @@ import TemperatureInputForm from "@/components/temperature-input-form"
 import GrainSizeCurve from "@/components/grain-size-curve"
 import SoilClassification from "@/components/soil-classification"
 import ResultsTable from "@/components/results-table"
-import MultiFileChart from "@/components/multi-file-chart"
+import FileMergeChart from "@/components/file-merge-chart"
+import AuthWrapper from "@/components/auth/auth-wrapper"
 import type { SieveData, AnalysisResults, TemperatureData } from "@/types/sieve-analysis"
 
 export default function GSASystem() {
@@ -53,26 +54,13 @@ export default function GSASystem() {
       setActiveTab(value)
     } else if ((value === "curve" || value === "classification") && analysisResults) {
       setActiveTab(value)
-    } else if (value === "comparison") {
+    } else if (value === "file-merge") {
       setActiveTab(value)
     }
   }
 
-  const getActiveTab = () => {
-    switch (currentStep) {
-      case "sieve":
-        return "input"
-      case "temperature":
-        return "temperature"
-      case "results":
-        return "results"
-      default:
-        return "input"
-    }
-  }
-
   return (
-    <div className="min-h-screen bg-background p-4">
+    <AuthWrapper>
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="text-center space-y-2">
           <h1 className="text-3xl font-bold tracking-tight">岩土工程篩分析系統</h1>
@@ -96,7 +84,7 @@ export default function GSASystem() {
             <TabsTrigger value="classification" disabled={!analysisResults}>
               土壤分類
             </TabsTrigger>
-            <TabsTrigger value="comparison">多檔案比較</TabsTrigger>
+            <TabsTrigger value="file-merge">檔案合併</TabsTrigger>
           </TabsList>
 
           <TabsContent value="input" className="space-y-6">
@@ -152,15 +140,12 @@ export default function GSASystem() {
 
           <TabsContent value="curve" className="space-y-6">
             {analysisResults && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>粒徑分布曲線</CardTitle>
-                  <CardDescription>顆粒粒徑分布與級配分析圖表</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <GrainSizeCurve data={sieveData} results={analysisResults} sampleInfo={sampleInfo} />
-                </CardContent>
-              </Card>
+              <GrainSizeCurve
+                data={sieveData}
+                results={analysisResults}
+                sampleInfo={sampleInfo}
+                temperatureData={temperatureData}
+              />
             )}
           </TabsContent>
 
@@ -178,11 +163,11 @@ export default function GSASystem() {
             )}
           </TabsContent>
 
-          <TabsContent value="comparison" className="space-y-6">
-            <MultiFileChart />
+          <TabsContent value="file-merge" className="space-y-6">
+            <FileMergeChart />
           </TabsContent>
         </Tabs>
       </div>
-    </div>
+    </AuthWrapper>
   )
 }
