@@ -1,7 +1,7 @@
 export interface User {
   id: string
   username: string
-  email: string
+  email?: string
   createdAt: string
 }
 
@@ -18,7 +18,6 @@ export interface LoginCredentials {
 
 export interface RegisterData {
   username: string
-  email: string
   password: string
   confirmPassword: string
 }
@@ -28,4 +27,11 @@ export interface ResetPasswordData {
   pin: string
   newPassword: string
   confirmPassword: string
+}
+
+export interface AdminSettings {
+  customPinCodes: { [email: string]: string }
+  fieldVisibility: {
+    [key: string]: boolean
+  }
 }

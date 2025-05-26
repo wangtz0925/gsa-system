@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo } from "react"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import type { SieveData, AnalysisResults, TemperatureData } from "@/types/sieve-analysis"
@@ -71,6 +71,22 @@ export default function GrainSizeCurve({ data, results, sampleInfo, temperatureD
   const uscsClassification = classifySoilUSCS(results)
   const aashtoClassification = classifySoilAASHTO(results)
 
+  // Sieve size labels for top axis
+  const sieveLabels = [
+    { size: 76.2, label: '3"' },
+    { size: 50.8, label: '2"' },
+    { size: 25.4, label: '1"' },
+    { size: 19.05, label: '3/4"' },
+    { size: 9.525, label: '3/8"' },
+    { size: 4.75, label: "#4" },
+    { size: 2.0, label: "#10" },
+    { size: 0.85, label: "#20" },
+    { size: 0.425, label: "#40" },
+    { size: 0.25, label: "#60" },
+    { size: 0.15, label: "#100" },
+    { size: 0.075, label: "#200" },
+  ]
+
   return (
     <div className="space-y-6">
       {/* Professional Grain Size Distribution Report */}
@@ -82,7 +98,7 @@ export default function GrainSizeCurve({ data, results, sampleInfo, temperatureD
         </CardHeader>
         <CardContent>
           {/* Sieve size indicators */}
-          <div className="mb-4 text-center">
+          <div className="mb-4">
             <div className="flex justify-between items-center mb-2">
               <div className="text-sm">
                 <div className="grid grid-cols-2 gap-8">
@@ -109,17 +125,27 @@ export default function GrainSizeCurve({ data, results, sampleInfo, temperatureD
                 </Button>
               </div>
             </div>
-            <div className="text-xs">3" 2" 1 3/4" 3/8" #4 #10 #20 #40 #60 #100 #200</div>
+
+            {/* Top sieve size labels */}
+            <div className="relative mb-2">
+              <div className="flex justify-between text-xs">
+                {sieveLabels.map((sieve) => (
+                  <div key={sieve.label} className="text-center">
+                    {sieve.label}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* Chart */}
           <div
-            className="h-96 w-full border-2 border-black"
+            className="h-96 w-full border-2 border-black relative"
             id="grain-size-chart"
             style={{ backgroundColor: "#ffffff" }}
           >
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData} margin={{ top: 20, right: 30, left: 60, bottom: 80 }}>
+              <LineChart data={chartData} margin={{ top: 20, right: 120, left: 60, bottom: 80 }}>
                 {/* Professional grid pattern */}
                 <CartesianGrid strokeDasharray="1 1" stroke="#000000" strokeWidth={0.5} />
 
@@ -157,12 +183,16 @@ export default function GrainSizeCurve({ data, results, sampleInfo, temperatureD
 
                 <Tooltip content={<CustomTooltip />} />
 
+                {/* Legend positioned at top right */}
+                <Legend verticalAlign="top" align="right" wrapperStyle={{ paddingBottom: "20px", fontSize: "12px" }} />
+
                 {/* Main curve */}
                 <Line
                   type="monotone"
                   dataKey="percentPassing"
                   stroke="#000000"
                   strokeWidth={2}
+                  name={sampleInfo.fileName || "Sample-1"}
                   dot={(props) => {
                     const { payload } = props
                     if (payload?.dataType === "sieve") {
@@ -179,6 +209,18 @@ export default function GrainSizeCurve({ data, results, sampleInfo, temperatureD
                 />
               </LineChart>
             </ResponsiveContainer>
+
+            {/* Bottom axis with powers of 10 */}
+            <div className="absolute bottom-2 left-16 right-16">
+              <div className="flex justify-between text-xs">
+                <span>10²</span>
+                <span>10¹</span>
+                <span>10⁰</span>
+                <span>10⁻¹</span>
+                <span>10⁻²</span>
+                <span>10⁻³</span>
+              </div>
+            </div>
           </div>
 
           {/* Particle size classification bar */}

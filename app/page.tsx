@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import SieveAnalysisForm from "@/components/sieve-analysis-form"
@@ -11,6 +11,8 @@ import ResultsTable from "@/components/results-table"
 import FileMergeChart from "@/components/file-merge-chart"
 import AuthWrapper from "@/components/auth/auth-wrapper"
 import type { SieveData, AnalysisResults, TemperatureData } from "@/types/sieve-analysis"
+import AdminPanel from "@/components/admin/admin-panel"
+import { AuthService } from "@/lib/auth"
 
 export default function GSASystem() {
   const [sieveData, setSieveData] = useState<SieveData[]>([])
@@ -30,6 +32,16 @@ export default function GSASystem() {
   })
 
   const [activeTab, setActiveTab] = useState<string>("input")
+
+  // 在組件中添加管理員檢查
+  const [currentUser, setCurrentUser] = useState<any>(null)
+
+  useEffect(() => {
+    const user = AuthService.getCurrentUser()
+    setCurrentUser(user)
+  }, [])
+
+  const isAdmin = currentUser && AuthService.isAdmin(currentUser.username)
 
   const handleSieveAnalysisComplete = (data: SieveData[], results: AnalysisResults) => {
     setSieveData(data)
@@ -56,6 +68,8 @@ export default function GSASystem() {
       setActiveTab(value)
     } else if (value === "file-merge") {
       setActiveTab(value)
+    } else if (value === "admin") {
+      setActiveTab(value)
     }
   }
 
@@ -68,7 +82,7 @@ export default function GSASystem() {
         </div>
 
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className={`grid w-full ${isAdmin ? "grid-cols-7" : "grid-cols-6"}`}>
             <TabsTrigger value="input" disabled={currentStep !== "sieve" && activeTab !== "input"}>
               篩分析數據
             </TabsTrigger>
@@ -85,6 +99,7 @@ export default function GSASystem() {
               土壤分類
             </TabsTrigger>
             <TabsTrigger value="file-merge">檔案合併</TabsTrigger>
+            {isAdmin && <TabsTrigger value="admin">管理員模式</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="input" className="space-y-6">
@@ -166,6 +181,11 @@ export default function GSASystem() {
           <TabsContent value="file-merge" className="space-y-6">
             <FileMergeChart />
           </TabsContent>
+          {isAdmin && (
+            <TabsContent value="admin" className="space-y-6">
+              <AdminPanel />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </AuthWrapper>

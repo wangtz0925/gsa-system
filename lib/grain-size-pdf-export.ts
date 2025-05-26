@@ -10,50 +10,70 @@ export async function exportGrainSizePDF(
   try {
     const { jsPDF } = await import("jspdf")
     const autoTable = (await import("jspdf-autotable")).default
+    const html2canvas = (await import("html2canvas")).default
 
     const doc = new jsPDF("landscape", "mm", "a4")
 
     // Title
     doc.setFontSize(16)
     doc.setFont("helvetica", "bold")
-    doc.text("GRAIN SIZE DISTRIBUTION TEST REPORT", 148, 20, { align: "center" })
+    doc.rect(20, 15, 256, 15)
+    doc.text("GRAIN SIZE DISTRIBUTION TEST REPORT", 148, 25, { align: "center" })
 
     // Sieve indicators
     doc.setFontSize(10)
-    doc.text("U.S. Std. Sieve", 20, 35)
-    doc.text("Hydrometer", 200, 35)
+    doc.text("U.S. Std. Sieve", 20, 40)
+    doc.text("Hydrometer", 200, 40)
     doc.setFontSize(8)
-    doc.text('3" 2" 1 3/4" 3/8" #4 #10 #20 #40 #60 #100 #200', 20, 42)
+    doc.text('3" 2" 1 3/4" 3/8" #4 #10 #20 #40 #60 #100 #200', 20, 47)
 
-    // Chart placeholder (would need chart library integration)
-    doc.rect(20, 50, 256, 120)
-    doc.setFontSize(12)
-    doc.text("Grain Size Distribution Chart", 148, 110, { align: "center" })
+    // Capture chart as image
+    const chartElement = document.getElementById("grain-size-chart")
+    if (chartElement) {
+      try {
+        const canvas = await html2canvas(chartElement, {
+          backgroundColor: "#ffffff",
+          scale: 1,
+          logging: false,
+          useCORS: true,
+        })
+
+        const imgData = canvas.toDataURL("image/png")
+        doc.addImage(imgData, "PNG", 20, 55, 256, 96)
+      } catch (error) {
+        console.warn("Could not capture chart, using placeholder")
+        doc.rect(20, 55, 256, 96)
+        doc.text("Chart Image", 148, 103, { align: "center" })
+      }
+    } else {
+      doc.rect(20, 55, 256, 96)
+      doc.text("Chart Image", 148, 103, { align: "center" })
+    }
 
     // Particle size classification
     doc.setFontSize(10)
     doc.setFont("helvetica", "bold")
-    doc.rect(20, 175, 85, 10)
-    doc.text("GRAVEL", 62, 182, { align: "center" })
-    doc.rect(105, 175, 85, 10)
-    doc.text("SAND", 147, 182, { align: "center" })
-    doc.rect(190, 175, 86, 10)
-    doc.text("FINES", 233, 182, { align: "center" })
+    doc.rect(20, 155, 85, 8)
+    doc.text("GRAVEL", 62, 161, { align: "center" })
+    doc.rect(105, 155, 85, 8)
+    doc.text("SAND", 147, 161, { align: "center" })
+    doc.rect(190, 155, 86, 8)
+    doc.text("FINES", 233, 161, { align: "center" })
 
     // Sub-classifications
     doc.setFontSize(8)
-    doc.rect(20, 185, 42, 8)
-    doc.text("COARSE", 41, 190, { align: "center" })
-    doc.rect(62, 185, 43, 8)
-    doc.text("FINE", 83, 190, { align: "center" })
-    doc.rect(105, 185, 28, 8)
-    doc.text("COARSE", 119, 190, { align: "center" })
-    doc.rect(133, 185, 28, 8)
-    doc.text("MEDIUM", 147, 190, { align: "center" })
-    doc.rect(161, 185, 29, 8)
-    doc.text("FINE", 175, 190, { align: "center" })
-    doc.rect(190, 185, 86, 8)
-    doc.text("SILT | CLAY", 233, 190, { align: "center" })
+    doc.rect(20, 163, 42, 6)
+    doc.text("COARSE", 41, 167, { align: "center" })
+    doc.rect(62, 163, 43, 6)
+    doc.text("FINE", 83, 167, { align: "center" })
+    doc.rect(105, 163, 28, 6)
+    doc.text("COARSE", 119, 167, { align: "center" })
+    doc.rect(133, 163, 28, 6)
+    doc.text("MEDIUM", 147, 167, { align: "center" })
+    doc.rect(161, 163, 29, 6)
+    doc.text("FINE", 175, 167, { align: "center" })
+    doc.rect(190, 163, 86, 6)
+    doc.text("SILT | CLAY", 233, 167, { align: "center" })
 
     // Data table
     const uscsClassification = classifySoilUSCS(results)
@@ -80,9 +100,12 @@ export async function exportGrainSizePDF(
     autoTable(doc, {
       head: [["Test No.", "D85", "D60", "D50", "D30", "D15", "D10", "Cu", "Cc", "LL", "PI", "Gravel %", "Sand %"]],
       body: tableData,
-      startY: 200,
-      styles: { fontSize: 8, cellPadding: 2 },
-      headStyles: { fillColor: [200, 200, 200] },
+      startY: 175,
+      styles: { fontSize: 8, cellPadding: 1, lineColor: [0, 0, 0], lineWidth: 0.5 },
+      headStyles: { fillColor: [200, 200, 200], textColor: [0, 0, 0] },
+      bodyStyles: { textColor: [0, 0, 0] },
+      tableLineColor: [0, 0, 0],
+      tableLineWidth: 0.5,
       margin: { left: 20, right: 20 },
     })
 
@@ -99,17 +122,21 @@ export async function exportGrainSizePDF(
     autoTable(doc, {
       head: [["Test No.", "USCS (ASTM D2487-85) Soil Classification", "AASHTO", "% Fines Clay Silt"]],
       body: classificationData,
-      startY: doc.lastAutoTable.finalY + 10,
-      styles: { fontSize: 8, cellPadding: 2 },
-      headStyles: { fillColor: [200, 200, 200] },
+      startY: doc.lastAutoTable.finalY + 5,
+      styles: { fontSize: 8, cellPadding: 1, lineColor: [0, 0, 0], lineWidth: 0.5 },
+      headStyles: { fillColor: [200, 200, 200], textColor: [0, 0, 0] },
+      bodyStyles: { textColor: [0, 0, 0] },
+      tableLineColor: [0, 0, 0],
+      tableLineWidth: 0.5,
       margin: { left: 20, right: 20 },
     })
 
     // Company info
     doc.setFontSize(12)
     doc.setFont("helvetica", "bold")
-    doc.text("GEOTECH ENGINEERING", 148, doc.lastAutoTable.finalY + 25, { align: "center" })
-    doc.text("CONSULTANTS CO., LTD.", 148, doc.lastAutoTable.finalY + 35, { align: "center" })
+    doc.rect(20, doc.lastAutoTable.finalY + 10, 256, 15)
+    doc.text("GEOTECH ENGINEERING", 148, doc.lastAutoTable.finalY + 18, { align: "center" })
+    doc.text("CONSULTANTS CO., LTD.", 148, doc.lastAutoTable.finalY + 23, { align: "center" })
 
     // Save
     const fileName = sampleInfo.fileName || "Grain_Size_Distribution"

@@ -1,9 +1,10 @@
-import type { User, LoginCredentials, RegisterData, ResetPasswordData } from "@/types/auth"
+import type { User, LoginCredentials, RegisterData, ResetPasswordData, AdminSettings } from "@/types/auth"
 
 // 模擬用戶數據庫
 const USERS_KEY = "gsa_users"
 const CURRENT_USER_KEY = "gsa_current_user"
 const RESET_PINS_KEY = "gsa_reset_pins"
+const ADMIN_SETTINGS_KEY = "gsa_admin_settings"
 
 export class AuthService {
   static getUsers(): User[] {
@@ -32,17 +33,27 @@ export class AuthService {
     }
   }
 
+  static isAdmin(username: string): boolean {
+    return username === "wangtz"
+  }
+
+  static getAdminSettings(): AdminSettings {
+    if (typeof window === "undefined") return { customPinCodes: {}, fieldVisibility: {} }
+    const settings = localStorage.getItem(ADMIN_SETTINGS_KEY)
+    return settings ? JSON.parse(settings) : { customPinCodes: {}, fieldVisibility: {} }
+  }
+
+  static saveAdminSettings(settings: AdminSettings): void {
+    if (typeof window === "undefined") return
+    localStorage.setItem(ADMIN_SETTINGS_KEY, JSON.stringify(settings))
+  }
+
   static async register(data: RegisterData): Promise<{ success: boolean; message: string; user?: User }> {
     const users = this.getUsers()
 
     // 檢查用戶名是否已存在
     if (users.find((u) => u.username === data.username)) {
       return { success: false, message: "用戶名已存在" }
-    }
-
-    // 檢查郵箱是否已存在
-    if (users.find((u) => u.email === data.email)) {
-      return { success: false, message: "郵箱已被註冊" }
     }
 
     // 檢查密碼確認
@@ -54,7 +65,6 @@ export class AuthService {
     const newUser: User = {
       id: Date.now().toString(),
       username: data.username,
-      email: data.email,
       createdAt: new Date().toISOString(),
     }
 
@@ -120,8 +130,16 @@ export class AuthService {
       return { success: false, message: "郵箱不存在" }
     }
 
-    // 生成6位數PIN碼
-    const pin = Math.floor(100000 + Math.random() * 900000).toString()
+    // 檢查管理員是否設定了自定義PIN碼
+    const adminSettings = this.getAdminSettings()
+    let pin: string
+
+    if (adminSettings.customPinCodes[email]) {
+      pin = adminSettings.customPinCodes[email]
+    } else {
+      // 生成6位數PIN碼
+      pin = Math.floor(100000 + Math.random() * 900000).toString()
+    }
 
     // 保存PIN碼（實際應用中應該發送郵件）
     const resetPins = JSON.parse(localStorage.getItem(RESET_PINS_KEY) || "{}")
@@ -159,5 +177,9 @@ export class AuthService {
     localStorage.setItem(RESET_PINS_KEY, JSON.stringify(resetPins))
 
     return { success: true, message: "密碼重置成功" }
+  }
+
+  static getAllUsersWithPasswords(): any[] {
+    return this.getUsers()
   }
 }

@@ -18,7 +18,6 @@ interface RegisterFormProps {
 export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: RegisterFormProps) {
   const [formData, setFormData] = useState<RegisterData>({
     username: "",
-    email: "",
     password: "",
     confirmPassword: "",
   })
@@ -31,7 +30,7 @@ export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: Reg
     setError("")
 
     try {
-      const result = await AuthService.register(formData)
+      const result = await AuthService.register({ ...formData, email: "fake@email.com" })
       if (result.success) {
         onRegisterSuccess()
       } else {
@@ -59,16 +58,6 @@ export default function RegisterForm({ onRegisterSuccess, onSwitchToLogin }: Reg
               type="text"
               value={formData.username}
               onChange={(e) => setFormData({ ...formData, username: e.target.value })}
-              required
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">郵箱</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
               required
             />
           </div>
