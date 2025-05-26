@@ -12,37 +12,37 @@ export function classifySoilUSCS(results: AnalysisResults): USCSClassification {
         if (uniformityCoefficient >= 4 && coefficientOfCurvature >= 1 && coefficientOfCurvature <= 3) {
           return {
             symbol: "GW",
-            name: "Well-graded gravel",
+            name: "級配良好礫石",
             description: "級配良好礫石，細料含量少或無",
             criteria: ["Cu ≥ 4", "1 ≤ Cc ≤ 3", "細料 < 5%"],
-            properties: ["Excellent drainage", "High strength", "Low compressibility"],
+            properties: ["排水性優良", "強度高", "壓縮性低"],
           }
         } else {
           return {
             symbol: "GP",
-            name: "Poorly graded gravel",
+            name: "級配不良礫石",
             description: "級配不良礫石，細料含量少或無",
             criteria: ["不符合 GW 標準", "細料 < 5%"],
-            properties: ["Good drainage", "Medium strength", "Low compressibility"],
+            properties: ["排水性良好", "強度中等", "壓縮性低"],
           }
         }
       } else if (finesPercent >= 5 && finesPercent <= 12) {
         // Gravels with fines - dual symbol needed (simplified here)
         return {
           symbol: "GW-GM",
-          name: "Well-graded gravel with silt",
+          name: "含粉土級配良好礫石",
           description: "含粉土細料的級配良好礫石",
           criteria: ["5% ≤ 細料 ≤ 12%", "符合 GW 標準"],
-          properties: ["Good drainage", "High strength", "Low compressibility"],
+          properties: ["排水性良好", "強度高", "壓縮性低"],
         }
       } else {
         // Gravels with fines > 12%
         return {
           symbol: "GM",
-          name: "Silty gravel",
+          name: "粉土質礫石",
           description: "含粉土細料的礫石",
           criteria: ["細料 > 12%", "細料為粉土質"],
-          properties: ["Fair drainage", "Medium strength", "Medium compressibility"],
+          properties: ["排水性尚可", "強度中等", "壓縮性中等"],
         }
       }
     } else {
@@ -52,28 +52,28 @@ export function classifySoilUSCS(results: AnalysisResults): USCSClassification {
         if (uniformityCoefficient >= 6 && coefficientOfCurvature >= 1 && coefficientOfCurvature <= 3) {
           return {
             symbol: "SW",
-            name: "Well-graded sand",
+            name: "級配良好砂",
             description: "級配良好砂，細料含量少或無",
             criteria: ["Cu ≥ 6", "1 ≤ Cc ≤ 3", "細料 < 5%"],
-            properties: ["Good drainage", "Medium strength", "Low compressibility"],
+            properties: ["排水性良好", "強度中等", "壓縮性低"],
           }
         } else {
           return {
             symbol: "SP",
-            name: "Poorly graded sand",
+            name: "級配不良砂",
             description: "級配不良砂，細料含量少或無",
             criteria: ["不符合 SW 標準", "細料 < 5%"],
-            properties: ["Good drainage", "Low to medium strength", "Low compressibility"],
+            properties: ["排水性良好", "強度低至中等", "壓縮性低"],
           }
         }
       } else {
         // Sands with fines
         return {
           symbol: "SM",
-          name: "Silty sand",
+          name: "粉土質砂",
           description: "含粉土細料的砂",
           criteria: ["細料 ≥ 5%", "細料為粉土質"],
-          properties: ["Fair drainage", "Medium strength", "Medium compressibility"],
+          properties: ["排水性尚可", "強度中等", "壓縮性中等"],
         }
       }
     }
@@ -81,10 +81,10 @@ export function classifySoilUSCS(results: AnalysisResults): USCSClassification {
     // Fine-grained soils (≥ 50% fines)
     return {
       symbol: "ML",
-      name: "Silt",
+      name: "粉土",
       description: "低塑性無機粉土",
       criteria: ["細料 ≥ 50%", "低塑性"],
-      properties: ["Poor drainage", "Low strength", "High compressibility"],
+      properties: ["排水性不良", "強度低", "壓縮性高"],
     }
   }
 }
@@ -104,36 +104,36 @@ export function classifySoilAASHTO(results: AnalysisResults): AASHTOClassificati
       if (finesPercent <= 15) {
         return {
           group: "A-1-a",
-          name: "Stone fragments, gravel and sand",
+          name: "石塊碎片、礫石與砂",
           description: "級配良好粒狀材料",
           groupIndex: 0,
-          suitability: ["Excellent subgrade material", "Good base material", "Excellent drainage"],
+          suitability: ["路基材料優良", "基層材料良好", "排水性優良"],
         }
       } else {
         return {
           group: "A-2-4",
-          name: "Silty or clayey gravel and sand",
+          name: "粉土質或黏土質礫石與砂",
           description: "含粉土細料的粒狀材料",
           groupIndex: Math.min(groupIndex, 4),
-          suitability: ["Good to fair subgrade material", "Fair base material", "Good drainage"],
+          suitability: ["路基材料良好至尚可", "基層材料尚可", "排水性良好"],
         }
       }
     } else {
       if (finesPercent <= 10) {
         return {
           group: "A-1-b",
-          name: "Stone fragments, gravel and sand",
+          name: "石塊碎片、礫石與砂",
           description: "級配良好粒狀材料",
           groupIndex: 0,
-          suitability: ["Excellent subgrade material", "Good base material", "Excellent drainage"],
+          suitability: ["路基材料優良", "基層材料良好", "排水性優良"],
         }
       } else {
         return {
           group: "A-3",
-          name: "Fine sand",
+          name: "細砂",
           description: "級配不良細砂",
           groupIndex: 0,
-          suitability: ["Fair subgrade material", "Poor base material", "Good drainage"],
+          suitability: ["路基材料尚可", "基層材料不良", "排水性良好"],
         }
       }
     }
@@ -142,18 +142,18 @@ export function classifySoilAASHTO(results: AnalysisResults): AASHTOClassificati
     if (finesPercent <= 50) {
       return {
         group: "A-4",
-        name: "Silty soils",
+        name: "粉土質土壤",
         description: "低塑性粉土質土壤",
         groupIndex: Math.min(groupIndex, 8),
-        suitability: ["Fair to poor subgrade material", "Not suitable for base", "Poor drainage"],
+        suitability: ["路基材料尚可至不良", "不適用於基層", "排水性不良"],
       }
     } else {
       return {
         group: "A-6",
-        name: "Clayey soils",
+        name: "黏土質土壤",
         description: "中塑性黏土質土壤",
         groupIndex: Math.min(groupIndex, 20),
-        suitability: ["Poor subgrade material", "Not suitable for base", "Very poor drainage"],
+        suitability: ["路基材料不良", "不適用於基層", "排水性極差"],
       }
     }
   }
