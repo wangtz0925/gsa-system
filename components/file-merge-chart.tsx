@@ -45,12 +45,12 @@ export default function FileMergeChart() {
 
     if (files.length > 10) {
       setErrors("最多只能選擇 10 個檔案")
-      return
+      return;
     }
 
     if (gsaFiles.length + files.length > 10) {
       setErrors("總共最多只能載入 10 個檔案")
-      return
+      return;
     }
 
     const newFiles: GSAFileData[] = []
