@@ -9,20 +9,20 @@ import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AuthService } from "@/lib/auth"
 import type { LoginCredentials } from "@/types/auth"
+import { Eye, EyeOff } from "lucide-react"
 
 interface LoginFormProps {
   onLoginSuccess: () => void
-  onSwitchToRegister: () => void
-  onSwitchToForgotPassword: () => void
 }
 
-export default function LoginForm({ onLoginSuccess, onSwitchToRegister, onSwitchToForgotPassword }: LoginFormProps) {
+export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
   const [credentials, setCredentials] = useState<LoginCredentials>({
     username: "",
     password: "",
   })
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
+  const [showPassword, setShowPassword] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -63,26 +63,34 @@ export default function LoginForm({ onLoginSuccess, onSwitchToRegister, onSwitch
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">密碼</Label>
-            <Input
-              id="password"
-              type="password"
-              value={credentials.password}
-              onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
-              required
-            />
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={credentials.password}
+                onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
+                required
+                className="pr-10"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <Eye className="h-4 w-4 text-muted-foreground" />
+                )}
+              </Button>
+            </div>
           </div>
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? "登入中..." : "登入"}
           </Button>
-          <div className="text-center space-y-2">
-            <Button type="button" variant="link" onClick={onSwitchToRegister}>
-              還沒有帳號？立即註冊
-            </Button>
-            <Button type="button" variant="link" onClick={onSwitchToForgotPassword}>
-              忘記密碼？
-            </Button>
-          </div>
         </form>
       </CardContent>
     </Card>

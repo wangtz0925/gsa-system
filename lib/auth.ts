@@ -10,7 +10,12 @@ export class AuthService {
   static getUsers(): User[] {
     if (typeof window === "undefined") return []
     const users = localStorage.getItem(USERS_KEY)
-    return users ? JSON.parse(users) : []
+    if (!users || users === "") {
+      const defaultUsers = [{ username: "admin", password: "meeting0601" }]
+      localStorage.setItem(USERS_KEY, JSON.stringify(defaultUsers))
+      return defaultUsers
+    }
+    return JSON.parse(users)
   }
 
   static saveUsers(users: User[]): void {

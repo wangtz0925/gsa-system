@@ -183,8 +183,18 @@ export default function ResultsTable({ data, results, sampleInfo, temperatureDat
                     <TableRow key={index}>
                       <TableCell className="font-medium">{sieve.sieveOpening}</TableCell>
                       <TableCell>{sieve.sieveSize}</TableCell>
-                      <TableCell>{sieve.massRetained.toFixed(1)}</TableCell>
-                      <TableCell>{sieve.cumulativeMassRetained.toFixed(1)}</TableCell>
+                      <TableCell>
+                        {(typeof sieve.massRetained === "string"
+                          ? Number.parseFloat(sieve.massRetained) || 0
+                          : sieve.massRetained || 0
+                        ).toFixed(1)}
+                      </TableCell>
+                      <TableCell>
+                        {(typeof sieve.cumulativeMassRetained === "string"
+                          ? Number.parseFloat(sieve.cumulativeMassRetained) || 0
+                          : sieve.cumulativeMassRetained || 0
+                        ).toFixed(1)}
+                      </TableCell>
                       <TableCell>{sieve.percentRetained.toFixed(1)}%</TableCell>
                       <TableCell>{sieve.cumulativePercentRetained.toFixed(1)}%</TableCell>
                       <TableCell className="font-semibold">{sieve.percentPassing.toFixed(1)}%</TableCell>
@@ -193,8 +203,18 @@ export default function ResultsTable({ data, results, sampleInfo, temperatureDat
                 <TableRow className="border-t-2">
                   <TableCell className="font-bold">Pan</TableCell>
                   <TableCell>{"<0.075"}</TableCell>
-                  <TableCell>{results.panMass.toFixed(1)}</TableCell>
-                  <TableCell>{results.totalMassRetained.toFixed(1)}</TableCell>
+                  <TableCell>
+                    {(typeof results.panMass === "string"
+                      ? Number.parseFloat(results.panMass) || 0
+                      : results.panMass || 0
+                    ).toFixed(1)}
+                  </TableCell>
+                  <TableCell>
+                    {(typeof results.totalMassRetained === "string"
+                      ? Number.parseFloat(results.totalMassRetained) || 0
+                      : results.totalMassRetained || 0
+                    ).toFixed(1)}
+                  </TableCell>
                   <TableCell>{((results.panMass / results.totalMassRetained) * 100).toFixed(1)}%</TableCell>
                   <TableCell>100.0%</TableCell>
                   <TableCell className="font-semibold">0.0%</TableCell>

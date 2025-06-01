@@ -6,11 +6,12 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowRight } from "lucide-react"
+import { ArrowRight, ArrowLeft } from "lucide-react"
 import type { AnalysisResults, TemperatureData } from "@/types/sieve-analysis"
 
 interface TemperatureInputFormProps {
   onTemperatureComplete: (data: TemperatureData) => void
+  onPreviousStep: () => void
   sampleInfo: any
   analysisResults: AnalysisResults | null
 }
@@ -19,6 +20,7 @@ const timeReadings = [2, 5, 15, 30, 60, 250]
 
 export default function TemperatureInputForm({
   onTemperatureComplete,
+  onPreviousStep,
   sampleInfo,
   analysisResults,
 }: TemperatureInputFormProps) {
@@ -158,10 +160,16 @@ export default function TemperatureInputForm({
               </Table>
             </div>
 
-            <Button onClick={proceedToResults} className="w-full">
-              <ArrowRight className="w-4 h-4 mr-2" />
-              完成輸入，查看結果
-            </Button>
+            <div className="flex gap-4 mt-4">
+              <Button onClick={onPreviousStep} className="flex-1" variant="outline">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Previous Step
+              </Button>
+              <Button onClick={proceedToResults} className="flex-1">
+                <ArrowRight className="w-4 h-4 mr-2" />
+                Complete Input
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>

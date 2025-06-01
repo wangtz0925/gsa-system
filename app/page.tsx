@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import SieveAnalysisForm from "@/components/sieve-analysis-form"
@@ -9,7 +9,10 @@ import GrainSizeCurve from "@/components/grain-size-curve"
 import SoilClassification from "@/components/soil-classification"
 import ResultsTable from "@/components/results-table"
 import FileMergeChart from "@/components/file-merge-chart"
+import AuthWrapper from "@/components/auth/auth-wrapper"
 import type { SieveData, AnalysisResults, TemperatureData } from "@/types/sieve-analysis"
+import AdminPanel from "@/components/admin/admin-panel"
+import { AuthService } from "@/lib/auth"
 
 export default function GSASystem() {
   const [sieveData, setSieveData] = useState<SieveData[]>([])
@@ -30,6 +33,16 @@ export default function GSASystem() {
 
   const [activeTab, setActiveTab] = useState<string>("input")
 
+  // 在組件中添加管理員檢查
+  const [currentUser, setCurrentUser] = useState<any>(null)
+
+  useEffect(() => {
+    const user = AuthService.getCurrentUser()
+    setCurrentUser(user)
+  }, [])
+
+  const isAdmin = currentUser && AuthService.isAdmin(currentUser.username)
+
   const handleSieveAnalysisComplete = (data: SieveData[], results: AnalysisResults) => {
     setSieveData(data)
     setAnalysisResults(results)
@@ -44,9 +57,13 @@ export default function GSASystem() {
   }
 
   const handleTabChange = (value: string) => {
-    // 只有在對應步驟完成後才允許切換
+    // Only allow switching after corresponding steps are completed
     if (value === "input") {
       setActiveTab(value)
+      // If going back from temperature to input, reset the step
+      if (currentStep === "temperature") {
+        setCurrentStep("sieve")
+      }
     } else if (value === "temperature" && currentStep !== "sieve") {
       setActiveTab(value)
     } else if (value === "results" && currentStep === "results") {
@@ -55,25 +72,21 @@ export default function GSASystem() {
       setActiveTab(value)
     } else if (value === "file-merge") {
       setActiveTab(value)
+    } else if (value === "admin") {
+      setActiveTab(value)
     }
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="border-b bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="text-center space-y-2">
-            <h1 className="text-3xl font-bold tracking-tight">岩土工程篩分析系統</h1>
-            <p className="text-muted-foreground">專業顆粒粒徑分布分析與土壤分類系統</p>
-          </div>
+    <AuthWrapper>
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="text-center space-y-2">
+          <h1 className="text-3xl font-bold tracking-tight">岩土工程篩分析系統</h1>
+          <p className="text-muted-foreground">專業顆粒粒徑分布分析與土壤分類系統</p>
         </div>
-      </div>
 
-      {/* Main content */}
-      <div className="max-w-7xl mx-auto p-4 space-y-6">
         <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className={`grid w-full ${isAdmin ? "grid-cols-7" : "grid-cols-6"}`}>
             <TabsTrigger value="input" disabled={currentStep !== "sieve" && activeTab !== "input"}>
               篩分析數據
             </TabsTrigger>
@@ -90,6 +103,7 @@ export default function GSASystem() {
               土壤分類
             </TabsTrigger>
             <TabsTrigger value="file-merge">檔案合併</TabsTrigger>
+            {isAdmin && <TabsTrigger value="admin">管理員模式</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="input" className="space-y-6">
@@ -117,6 +131,10 @@ export default function GSASystem() {
               <CardContent>
                 <TemperatureInputForm
                   onTemperatureComplete={handleTemperatureComplete}
+                  onPreviousStep={() => {
+                    setCurrentStep("sieve")
+                    setActiveTab("input")
+                  }}
                   sampleInfo={sampleInfo}
                   analysisResults={analysisResults}
                 />
@@ -171,8 +189,13 @@ export default function GSASystem() {
           <TabsContent value="file-merge" className="space-y-6">
             <FileMergeChart />
           </TabsContent>
+          {isAdmin && (
+            <TabsContent value="admin" className="space-y-6">
+              <AdminPanel />
+            </TabsContent>
+          )}
         </Tabs>
       </div>
-    </div>
+    </AuthWrapper>
   )
 }

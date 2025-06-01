@@ -18,16 +18,17 @@ interface SieveAnalysisFormProps {
 }
 
 const fixedSieves = [
-  { size: 0.075, opening: "No. 200" },
-  { size: 0.15, opening: "No. 100" },
-  { size: 0.25, opening: "No. 60" },
-  { size: 0.425, opening: "No. 40" },
-  { size: 0.85, opening: "No. 20" },
-  { size: 2.0, opening: "No. 10" },
-  { size: 4.75, opening: "No. 4" },
-  { size: 9.525, opening: "3/8 in." },
-  { size: 19.05, opening: "3/4 in." },
-  { size: 25.4, opening: "1 in." },
+  { size: 0.075, opening: "No. 200", meshOpening: 0.074 },
+  { size: 0.15, opening: "No. 100", meshOpening: 0.149 },
+  { size: 0.25, opening: "No. 60", meshOpening: 0.29 },
+  { size: 0.425, opening: "No. 40", meshOpening: 0.42 },
+  { size: 0.85, opening: "No. 20", meshOpening: 0.84 },
+  { size: 2.0, opening: "No. 10", meshOpening: 2 },
+  { size: 4.75, opening: "No. 4", meshOpening: 4.76 },
+  { size: 9.525, opening: "3/8 in.", meshOpening: 9.52 },
+  { size: 19.05, opening: "3/4 in.", meshOpening: 19.1 },
+  { size: 25.4, opening: "1 in.", meshOpening: 25.4 },
+  { size: 38.1, opening: "1.5 in.", meshOpening: 37.5 },
 ]
 
 export default function SieveAnalysisForm({ onAnalysisComplete, sampleInfo, setSampleInfo }: SieveAnalysisFormProps) {
@@ -35,6 +36,7 @@ export default function SieveAnalysisForm({ onAnalysisComplete, sampleInfo, setS
     fixedSieves.map((sieve) => ({
       sieveSize: sieve.size,
       sieveOpening: sieve.opening,
+      meshOpening: sieve.meshOpening,
       massRetained: 0,
       cumulativeMassRetained: 0,
       percentRetained: 0,
@@ -47,13 +49,14 @@ export default function SieveAnalysisForm({ onAnalysisComplete, sampleInfo, setS
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
 
   const validateNumericInput = (value: string, fieldName: string) => {
-    const numericRegex = /^\d*\.?\d*$/
+    // 允許空字串、單獨的小數點、或正確的數字格式（最多5位小數）
+    const numericRegex = /^(\d*\.?\d{0,5}|\.|\d+\.)$/
     if (value === "") {
       setErrors((prev) => ({ ...prev, [fieldName]: "" }))
       return true
     }
     if (!numericRegex.test(value)) {
-      setErrors((prev) => ({ ...prev, [fieldName]: "僅能輸入數字" }))
+      setErrors((prev) => ({ ...prev, [fieldName]: "僅能輸入數字，最多小數點後五位" }))
       return false
     }
     setErrors((prev) => ({ ...prev, [fieldName]: "" }))
@@ -69,6 +72,7 @@ export default function SieveAnalysisForm({ onAnalysisComplete, sampleInfo, setS
     }
 
     const newData = [...sieveData]
+    // 對於 massRetained，直接保存字串值
     newData[index] = { ...newData[index], [field]: value }
     setSieveData(newData)
   }
@@ -83,8 +87,12 @@ export default function SieveAnalysisForm({ onAnalysisComplete, sampleInfo, setS
   }
 
   const calculatePanRetained = () => {
-    const totalRetained = sieveData.reduce((sum, sieve) => sum + (sieve.massRetained || 0), 0)
-    return (sampleInfo.totalMass || 0) - totalRetained
+    const totalRetained = sieveData.reduce((sum, sieve) => {
+      const mass =
+        typeof sieve.massRetained === "string" ? Number.parseFloat(sieve.massRetained) || 0 : sieve.massRetained || 0
+      return sum + mass
+    }, 0)
+    return (Number.parseFloat(sampleInfo.totalMass) || 0) - totalRetained
   }
 
   const panRetained = calculatePanRetained()
@@ -255,7 +263,7 @@ export default function SieveAnalysisForm({ onAnalysisComplete, sampleInfo, setS
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">篩分析數據</CardTitle>
-          <CardDescription>輸入各篩網上的滯留質量，完成後點擊下一步驟進行分析。</CardDescription>
+          <CardDescription>輸入各篩網上的滯留重量，完成後點擊下一步驟進行分析。</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -264,22 +272,24 @@ export default function SieveAnalysisForm({ onAnalysisComplete, sampleInfo, setS
                 <TableHeader>
                   <TableRow>
                     <TableHead>篩網開口</TableHead>
+                    <TableHead>網目孔徑 (mm)</TableHead>
                     {showOptionalFields && <TableHead>篩網尺寸 (mm)</TableHead>}
-                    <TableHead>滯留質量 (g)</TableHead>
+                    <TableHead>
+                      滯留重量 (g) <span className="text-xs text-muted-foreground">(可輸入至小數點後五位)</span>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {sieveData.map((sieve, index) => (
                     <TableRow key={index}>
                       <TableCell className="font-medium">{sieve.sieveOpening}</TableCell>
+                      <TableCell>{fixedSieves[index]?.meshOpening}</TableCell>
                       {showOptionalFields && <TableCell>{sieve.sieveSize}</TableCell>}
                       <TableCell>
                         <Input
                           type="text"
-                          value={sieve.massRetained || ""}
-                          onChange={(e) =>
-                            updateSieveData(index, "massRetained", Number.parseFloat(e.target.value) || 0)
-                          }
+                          value={sieve.massRetained?.toString() || ""}
+                          onChange={(e) => updateSieveData(index, "massRetained", e.target.value)}
                           className={`w-24 ${errors[`sieve_${index}`] ? "border-red-500" : ""}`}
                           placeholder="0"
                         />
@@ -291,10 +301,11 @@ export default function SieveAnalysisForm({ onAnalysisComplete, sampleInfo, setS
                   ))}
                   <TableRow className="border-t-2 bg-muted/50">
                     <TableCell className="font-bold">Pan retained</TableCell>
+                    <TableCell>{"<0.074"}</TableCell>
                     {showOptionalFields && <TableCell>{"<0.075"}</TableCell>}
                     <TableCell>
                       <div className={`font-semibold ${panRetained < 4.2 ? "text-red-500" : ""}`}>
-                        {panRetained.toFixed(1)} g
+                        {panRetained.toFixed(5)} g
                       </div>
                       {panRetained < 4.2 && <p className="text-red-500 text-xs mt-1">剩餘重量過低</p>}
                     </TableCell>
